@@ -20,9 +20,9 @@
 				conn = new XMPP();
 				conn.auto_reconnect = false;
 				
-				conn.setJID(loginField.text+"@"+"imediamac19.uio.no/itweakteacher");
+				conn.setJID(loginField.text+"@"+resourceManager.getString('resources', 'SERVER_HOST')+"/itweakteacher");
 				conn.setPassword(passwordField.text);
-				conn.setServer("imediamac19.uio.no");
+				conn.setServer(resourceManager.getString('resources', 'SERVER_HOST'));
 				conn.addEventListener(XMPPEvent.SESSION, handleSession);
 				
 				conn.addPlugin(new MUC());
@@ -60,7 +60,7 @@
 				<s:TextInput displayAsPassword="true" id="passwordField" width="100" text="system"/>			
 			</s:VGroup>
 			<s:VGroup verticalAlign="middle">
-				<s:Label text="{'@imediamac19.uio.no'}" verticalAlign="middle" height="33"/>
+				<s:Label text="{'@'+resourceManager.getString('resources', 'SERVER_HOST')}" verticalAlign="middle" height="33"/>
 			</s:VGroup>
 		</s:HGroup>
 		<s:Button id="loginButton" label="Login" width="100%" click="loginButton_clickHandler(event)" />

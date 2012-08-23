@@ -34,3 +34,7 @@ bin-debug/icons/72.png
 iTweakTeacher.apk
 
 iTweakTeacher.ipa
+
+src/locale/en_US/resources.properties
+
+bin-debug/locale/en_US/resources.properties.example

@@ -47,9 +47,9 @@
 				conn.socket.addEventListener(StreamEvent.CONNECTED, handleConnected);
 				
 				this.user = dat.jid;
-				jid = this.user+ "@imediamac19.uio.no/itweakteacher";
+				jid = this.user+ "@"+resourceManager.getString('resources', 'SERVER_HOST')+"/itweakteacher";
 				
-				conn.plugin['muc'].joinRoom('conference.imediamac19.uio.no', 'tweakfelles', this.user);
+				conn.plugin['muc'].joinRoom('conference.'+resourceManager.getString('resources', 'SERVER_HOST'), 'tweakfelles', this.user);
 			}
 			
 			private function handleAuthSucceed(e:XMPPEvent):void {
@@ -149,7 +149,7 @@
 			
 			protected function sendToRoom():void {
 				if(chatArea.text != "") {
-					conn.plugin['muc'].sendMessage('conference.imediamac19.uio.no', 'tweakfelles', chatArea.text, null);
+					conn.plugin['muc'].sendMessage('conference.'+resourceManager.getString('resources', 'SERVER_HOST'), 'tweakfelles', chatArea.text, null);
 				}
 				chatArea.text = "";
 			}
@@ -192,7 +192,7 @@
 			
 			protected function handleDeleteTweet(evt:DeleteTweetEvent):void {
 				bi.visible = true;
-				var upurlRequest:URLRequest = new URLRequest("http://imediamac19.uio.no:4568/tweakTweet/"+evt.tId);
+				var upurlRequest:URLRequest = new URLRequest(resourceManager.getString('resources', 'SERVICE_HOST')+"/tweakTweet/"+evt.tId);
 				upurlRequest.method = URLRequestMethod.DELETE;
 				upurlRequest.contentType = "application/json";
 				var uploader:URLLoader = new URLLoader();
@@ -209,7 +209,7 @@
 	</fx:Script>
 	
 	<fx:Declarations>
-		<s:HTTPService id="getAllTweets" url="http://imediamac19.uio.no:4568/allTweakTweet" result="getAllTweets_resultHandler(event)" fault="getAllTweets_faultHandler(event)" resultFormat="text" method="GET" />
+		<s:HTTPService id="getAllTweets" url="{resourceManager.getString('resources', 'SERVICE_HOST')+'/allTweakTweet'}" result="getAllTweets_resultHandler(event)" fault="getAllTweets_faultHandler(event)" resultFormat="text" method="GET" />
 	</fx:Declarations>
 	
 	<s:actionContent>

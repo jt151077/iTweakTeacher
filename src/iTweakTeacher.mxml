@@ -9,4 +9,8 @@
 		}
 	</fx:Style>
 	
+	<fx:Metadata>
+		[ResourceBundle("resources")]
+	</fx:Metadata>
+	
 </s:ViewNavigatorApplication>
