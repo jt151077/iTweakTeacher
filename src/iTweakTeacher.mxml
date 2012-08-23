@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:ViewNavigatorApplication xmlns:fx="http://ns.adobe.com/mxml/2009" 
+							xmlns:s="library://ns.adobe.com/flex/spark" firstView="views.iTweakTeacherHomeView" resizeForSoftKeyboard="true">
+	
+	<fx:Style>
+		@namespace s "library://ns.adobe.com/flex/spark";
+		s|ActionBar {
+			/*chromeColor: #D96813;*/
+		}
+	</fx:Style>
+	
+</s:ViewNavigatorApplication>

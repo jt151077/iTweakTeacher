@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:ItemRenderer xmlns:fx="http://ns.adobe.com/mxml/2009" 
+					xmlns:s="library://ns.adobe.com/flex/spark" width="100%" minHeight="30" alpha="{data.al}" currentState="{data.stat}" click="itemrenderer1_clickHandler(event)">
+	
+	<fx:Script>
+		<![CDATA[
+			import flash.net.navigateToURL;
+			[bindable] private var purl:String;
+			
+			private function stripHTML(value:String):String{
+				var re:RegExp = /doSomething\(\"(.*?)\"\)/g;
+				var s:Object = re.exec(value);
+				
+				if(s != null) {
+					purl = s[1] as String;
+					borderRect.visible = true;
+				}
+				
+				return value.replace(/<.*?>/g, "");
+			}
+			
+			
+			protected function itemrenderer1_clickHandler(event:MouseEvent):void {
+				if(purl != null) {
+					navigateToURL(new URLRequest("http://imelab.wikispaces.com/"+purl));
+				}
+			}
+			
+		]]>
+	</fx:Script>
+	
+	<s:states>
+		<s:State name="others" />
+		<s:State name="me" />
+		<s:State name="teacher" />
+		<s:State name="wsagent" />
+		<s:State name="info" />
+	</s:states>
+	
+	<s:Rect excludeFrom="info" radiusX="10" radiusY="10" width="{(this.width/2)-20}" height="100%" right.teacher="0" right.wsagent="0" left.others="0" left.me="0" >
+		<s:fill>
+			<s:SolidColor color.me="#7DBBF0" color.others="#333333" color.teacher="#56B95A" color.wsagent="#D96813" />
+		</s:fill>
+	</s:Rect>
+	
+	<s:Rect id="borderRect" visible="false" radiusX="10" radiusY="10" width="{(this.width/2)-20}" height="100%" right.teacher="0" right.wsagent="0" left.others="0" left.me="0">
+		<s:stroke>
+			<s:SolidColorStroke color="#000000" weight="2" />
+		</s:stroke>
+	</s:Rect>
+	
+	<s:Group excludeFrom="info" width="{(this.width/2)-20}" right.teacher="0" right.wsagent="0" left.others="0" left.me="0">
+		<s:VGroup top="10" right="10" bottom="10" left="10" >
+			<s:Label text="{data.from+':'}" width="100%" color.others="#FFFFFF" color.me="#FFFFFF" includeInLayout.teacher="true" includeInLayout.wsagent="false" includeInLayout.me="true" includeInLayout.others="true"/>
+			<s:Label text="{stripHTML(data.bdy)}" width="100%" color.others="#FFFFFF" color.me="#FFFFFF"/>
+		</s:VGroup>
+	</s:Group>
+	
+	<s:Label top="10" includeIn="info" text="{'*** '+data.bdy}" width="100%" />
+</s:ItemRenderer>

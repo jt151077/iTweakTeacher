@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:View xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		xmlns:s="library://ns.adobe.com/flex/spark" title="Open session" tabBarVisible="false">
+	
+	<fx:Script>
+		<![CDATA[
+			import com.seesmic.as3.xmpp.XMPP;
+			import com.seesmic.as3.xmpp.XMPPEvent;
+			import com.seesmic.as3.xmpp.xep.muc.MUC;
+			import com.seesmic.as3.xmpp.xep.publish_subscribe.PubSubEvent;
+			import com.seesmic.as3.xmpp.xep.publish_subscribe.PublishSubscribe;
+			
+			import mx.events.FlexEvent;
+			
+			private var conn:XMPP;
+			
+			protected function loginButton_clickHandler(event:MouseEvent):void {
+				working.visible = true;
+				
+				conn = new XMPP();
+				conn.auto_reconnect = false;
+				
+				conn.setJID(loginField.text+"@"+"imediamac19.uio.no/itweakteacher");
+				conn.setPassword(passwordField.text);
+				conn.setServer("imediamac19.uio.no");
+				conn.addEventListener(XMPPEvent.SESSION, handleSession);
+				
+				conn.addPlugin(new MUC());
+				
+				conn.connect();
+			}
+			
+			private final function handleSession(e:XMPPEvent):void {
+				var dat:Object = new Object();
+				dat.conn = conn;
+				dat.jid = loginField.text;
+				
+				working.visible = false;
+				
+				navigator.pushView(ChatView, dat, null, null);
+			}
+		]]>
+	</fx:Script>
+	
+	<s:Rect width="{loginGrp.width+20}" height="{loginGrp.height+20}" horizontalCenter="0" verticalCenter="0" radiusX="10" radiusY="10">
+		<s:stroke>
+			<s:SolidColorStroke color="#999999" />
+		</s:stroke>
+	</s:Rect>
+	
+	<s:VGroup id="loginGrp" horizontalCenter="0" verticalCenter="0" horizontalAlign="center" gap="30">
+		<s:HGroup>
+			<s:VGroup horizontalAlign="right">
+				<s:Label id="loginFieldLabel" fontWeight="bold" text="Login: " verticalAlign="middle" height="33" />
+				<s:Label id="passwordFieldLabel" fontWeight="bold" text="Password:" verticalAlign="middle" height="33" />
+			</s:VGroup>
+			<s:Spacer width="10" />
+			<s:VGroup>
+				<s:TextInput id="loginField" text="teacher" width="100" />
+				<s:TextInput displayAsPassword="true" id="passwordField" width="100" text="system"/>			
+			</s:VGroup>
+			<s:VGroup verticalAlign="middle">
+				<s:Label text="{'@imediamac19.uio.no'}" verticalAlign="middle" height="33"/>
+			</s:VGroup>
+		</s:HGroup>
+		<s:Button id="loginButton" label="Login" width="100%" click="loginButton_clickHandler(event)" />
+	</s:VGroup>
+	
+	<s:BusyIndicator id="working" horizontalCenter="0" verticalCenter="0" visible="false" />
+</s:View>

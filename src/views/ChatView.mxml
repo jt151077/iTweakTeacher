@@ -1,0 +1,246 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:View xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		xmlns:s="library://ns.adobe.com/flex/spark" title="{'ChatView ('+numMess+' posts)'}" creationComplete="initView(event)">
+	<fx:Script>
+		<![CDATA[
+			import com.adobe.serialization.json.JSON;
+			import com.seesmic.as3.xmpp.JID;
+			import com.seesmic.as3.xmpp.StreamEvent;
+			import com.seesmic.as3.xmpp.XMPP;
+			import com.seesmic.as3.xmpp.XMPPEvent;
+			
+			import listeners.DeleteTweetEvent;
+			
+			import mx.events.FlexEvent;
+			import mx.rpc.events.FaultEvent;
+			import mx.rpc.events.ResultEvent;
+			
+			import spark.components.TabbedViewNavigator;
+			import spark.core.NavigationUnit;
+			import spark.events.TextOperationEvent;
+			
+			private var conn:XMPP;
+			[Bindable] private var jid:String;
+			private var user:String;
+			
+			[Bindable] private var numMess:Number = 0;
+			
+			[Bindable] private var tweets:ArrayCollection;
+			
+			protected function initView(event:FlexEvent):void {
+				this.addEventListener("DELETE_TWEET", handleDeleteTweet);
+				
+				var dat:Object = data;
+				
+				conn = dat.conn;
+				
+				conn.addEventListener(XMPPEvent.MESSAGE_MUC, handleMUCMessage);
+				conn.addEventListener(XMPPEvent.PRESENCE_AVAILABLE, handlePresence);
+				conn.addEventListener(XMPPEvent.PRESENCE_UNAVAILABLE, handlePresenceUnAvail);
+				
+				conn.addEventListener(XMPPEvent.AUTH_SUCCEEDED, handleAuthSucceed);
+				conn.addEventListener(XMPPEvent.AUTH_FAILED, handleAuthFailed);
+				conn.addEventListener(XMPPEvent.PRESENCE_ERROR, handlePresenceError);
+				conn.addEventListener(XMPPEvent.PRESENCE_SUBSCRIBE, handlePresenceSubscribe);
+				conn.socket.addEventListener(StreamEvent.DISCONNECTED, handleDisconnected);
+				conn.socket.addEventListener(StreamEvent.CONNECT_FAILED, handleConnectFailed);
+				conn.socket.addEventListener(StreamEvent.CONNECTED, handleConnected);
+				
+				this.user = dat.jid;
+				jid = this.user+ "@imediamac19.uio.no/itweakteacher";
+				
+				conn.plugin['muc'].joinRoom('conference.imediamac19.uio.no', 'tweakfelles', this.user);
+			}
+			
+			private function handleAuthSucceed(e:XMPPEvent):void {
+				trace("Authentication success");
+			}
+			
+			private function handleAuthFailed(e:XMPPEvent):void {
+				trace("Authentication failed");
+			}
+			
+			private function handlePresenceError(e:XMPPEvent):void {
+				trace("Presence error");
+			}
+			
+			private function handlePresenceSubscribe(e:XMPPEvent):void {
+				trace("Presence subscription event");
+			}
+			
+			private function handleDisconnected(e:StreamEvent):void {
+				trace("Disconnected");
+				navigator.pushView(iTweakTeacherHomeView);
+			}
+			
+			private function handleConnected(e:StreamEvent):void {
+				trace("Connected");
+			}
+			
+			private function handleConnectFailed(e:StreamEvent):void {
+				trace("Failed to connect");
+			}
+			
+			private function handlePresence(e:XMPPEvent):void {
+				chatList.dataProvider.addItem({bdy: e.stanza.from.resource+" is online.", from: null, stat:"info", al:1});
+				scrollToBottom();
+			}
+			
+			private function handlePresenceUnAvail(e:XMPPEvent):void {
+				chatList.dataProvider.addItem({bdy: e.stanza.from.resource+" is offline.", from: null, stat:"info", al:1});
+				scrollToBottom();
+			}
+			
+			private function handleMUCMessage(e:XMPPEvent):void {
+				if(!e.stanza.body) {
+					return;
+				}
+				
+				var roomjid:JID = JID(e.stanza.from);
+				var cstate:String = null;
+				var al:Number = 1;
+				
+				if(roomjid.getResource() != "") {
+					switch(roomjid.getResource()) {
+						case 'teacher':
+							cstate = "teacher";
+							break;
+						case user:
+							cstate = "me";
+							break;
+						case 'wsagent':
+							cstate = "wsagent";
+							break;
+						default:
+							cstate = "others";
+							break;
+					}
+					
+					var xm:XML = e.stanza.xml as XML;
+					for each (var i:XML in xm.elements()) {
+						if(i.name() == "urn:xmpp:delay::delay") {
+							al = .5;
+						}
+					}
+					
+					numMess++;
+				}
+				else {
+					cstate = "info";
+				}
+
+				chatList.dataProvider.addItem({bdy: e.stanza.body, from: roomjid.getResource(), stat:cstate, al:al});
+				scrollToBottom();
+			}
+			
+			private function scrollToBottom():void {
+				var delta:Number = 0;
+				var count:int = 0;
+				while (count++ < 10){
+					chatList.validateNow();
+					delta = chatList.layout.getVerticalScrollPositionDelta(NavigationUnit.END);
+					chatList.layout.verticalScrollPosition += delta;
+					
+					if (delta == 0) {
+						break;						
+					}
+				}
+			}
+			
+			protected function sendToRoom():void {
+				if(chatArea.text != "") {
+					conn.plugin['muc'].sendMessage('conference.imediamac19.uio.no', 'tweakfelles', chatArea.text, null);
+				}
+				chatArea.text = "";
+			}
+			
+			protected function disconnect(event:MouseEvent):void {
+				conn.disconnect();
+				navigator.pushView(iTweakTeacherHomeView);
+			}
+			
+			protected function listenToReturn(event:KeyboardEvent):void {
+				if(event.keyCode == 13) {
+					sendToRoom();
+					stage.focus = null;
+				}
+			}
+			
+			protected function manageTweets():void {
+				this.currentState = "tweets";
+				tweets = new ArrayCollection;
+				getAllTweets.send();
+			}
+			
+			protected function getAllTweets_resultHandler(event:ResultEvent):void {
+				var res:Object = com.adobe.serialization.json.JSON.decode(String(event.result));
+				
+				for each (var tweet:Object in res) {
+					tweets.addItem({tid: tweet._id, ttxt: tweet.content, tcreator: tweet.creator, tdato: tweet.dato});
+				}
+				
+				this.title="TweetView ("+tweets.length+" posts)";
+			}
+			
+			protected function getAllTweets_faultHandler(event:FaultEvent):void {
+			}
+			
+			protected function viewChat(event:MouseEvent):void {
+				this.currentState = "chat";
+				this.title="ChatView ("+numMess+" posts)";
+			}
+			
+			protected function handleDeleteTweet(evt:DeleteTweetEvent):void {
+				bi.visible = true;
+				var upurlRequest:URLRequest = new URLRequest("http://imediamac19.uio.no:4568/tweakTweet/"+evt.tId);
+				upurlRequest.method = URLRequestMethod.DELETE;
+				upurlRequest.contentType = "application/json";
+				var uploader:URLLoader = new URLLoader();
+				uploader.addEventListener(Event.COMPLETE, tweetDeletedResult);
+				uploader.load(upurlRequest);
+			}
+			
+			protected function tweetDeletedResult(evt:Event):void {
+				manageTweets();
+				bi.visible = false;
+			}
+			
+		]]>
+	</fx:Script>
+	
+	<fx:Declarations>
+		<s:HTTPService id="getAllTweets" url="http://imediamac19.uio.no:4568/allTweakTweet" result="getAllTweets_resultHandler(event)" fault="getAllTweets_faultHandler(event)" resultFormat="text" method="GET" />
+	</fx:Declarations>
+	
+	<s:actionContent>
+		<s:Button includeIn="tweets" id="viewChatButton" label="Chat" click="viewChat(event)"/>
+		<s:Button includeIn="chat" id="manageTweetsButton" label="Manage tweets" click="manageTweets()"/>
+		<s:Button id="disconnectButton" label="Disconnect" click="disconnect(event)"/>
+	</s:actionContent>
+	
+	<s:states>
+		<s:State name="chat" />
+		<s:State name="tweets" />
+	</s:states>
+	
+	<s:VGroup excludeFrom="tweets" right="10" top="10" left="10" bottom="10">
+		<s:List id="chatList" height="100%" width="100%" itemRenderer="categoryRenderer" contentBackgroundColor="#FFFFFF">
+			<s:layout>
+				<s:VerticalLayout horizontalAlign="justify" gap="5" />
+			</s:layout>
+			<s:dataProvider>
+				<s:ArrayCollection id="dp" />
+			</s:dataProvider>
+		</s:List>
+		<s:HGroup width="100%" verticalAlign="middle">
+			<s:TextInput id="chatArea" height="50" width="100%" keyUp="listenToReturn(event)" returnKeyLabel="done" needsSoftKeyboard="true" />
+			<s:Button label="Send" height="50" click="sendToRoom()" />
+		</s:HGroup>
+	</s:VGroup>
+	
+	<s:List excludeFrom="chat" width="100%" height="100%" id="tweetList" dataProvider="{tweets}" itemRenderer="tweetRenderer" />
+	
+	<s:BorderContainer visible="false" width="100%" height="100%" backgroundColor="#333333" backgroundAlpha=".7" id="bi">
+		<s:BusyIndicator width="50" height="50" horizontalCenter="0" verticalCenter="0" symbolColor="#FFFFFF" />
+	</s:BorderContainer>
+</s:View>
