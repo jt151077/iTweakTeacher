@@ -57,7 +57,7 @@
 			<s:Spacer width="10" />
 			<s:VGroup>
 				<s:TextInput id="loginField" text="teacher" width="100" />
-				<s:TextInput displayAsPassword="true" id="passwordField" width="100" text="system"/>			
+				<s:TextInput displayAsPassword="true" id="passwordField" width="100" text="{resourceManager.getString('resources', 'TEACHER_PASSWORD')}"/>			
 			</s:VGroup>
 			<s:VGroup verticalAlign="middle">
 				<s:Label text="{'@'+resourceManager.getString('resources', 'SERVER_HOST')}" verticalAlign="middle" height="33"/>

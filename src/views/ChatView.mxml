@@ -49,7 +49,7 @@
 				this.user = dat.jid;
 				jid = this.user+ "@"+resourceManager.getString('resources', 'SERVER_HOST')+"/itweakteacher";
 				
-				conn.plugin['muc'].joinRoom('conference.'+resourceManager.getString('resources', 'SERVER_HOST'), 'tweakfelles', this.user);
+				conn.plugin['muc'].joinRoom('conference.'+resourceManager.getString('resources', 'SERVER_HOST'), resourceManager.getString('resources', 'ROOM_NAME'), this.user);
 			}
 			
 			private function handleAuthSucceed(e:XMPPEvent):void {
@@ -149,7 +149,7 @@
 			
 			protected function sendToRoom():void {
 				if(chatArea.text != "") {
-					conn.plugin['muc'].sendMessage('conference.'+resourceManager.getString('resources', 'SERVER_HOST'), 'tweakfelles', chatArea.text, null);
+					conn.plugin['muc'].sendMessage('conference.'+resourceManager.getString('resources', 'SERVER_HOST'), resourceManager.getString('resources', 'ROOM_NAME'), chatArea.text, null);
 				}
 				chatArea.text = "";
 			}
