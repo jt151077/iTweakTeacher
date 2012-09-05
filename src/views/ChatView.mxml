@@ -49,7 +49,7 @@
 				this.user = dat.jid;
 				jid = this.user+ "@"+resourceManager.getString('resources', 'SERVER_HOST')+"/itweakteacher";
 				
-				conn.plugin['muc'].joinRoom('conference.'+resourceManager.getString('resources', 'SERVER_HOST'), resourceManager.getString('resources', 'ROOM_NAME'), this.user);
+				conn.plugin['muc'].joinRoom('conference.'+resourceManager.getString('resources', 'SERVER_HOST'), resourceManager.getString('resources', 'ROOM_NAME_SIGNY'), this.user);
 			}
 			
 			private function handleAuthSucceed(e:XMPPEvent):void {
@@ -149,7 +149,7 @@
 			
 			protected function sendToRoom():void {
 				if(chatArea.text != "") {
-					conn.plugin['muc'].sendMessage('conference.'+resourceManager.getString('resources', 'SERVER_HOST'), resourceManager.getString('resources', 'ROOM_NAME'), chatArea.text, null);
+					conn.plugin['muc'].sendMessage('conference.'+resourceManager.getString('resources', 'SERVER_HOST'), resourceManager.getString('resources', 'ROOM_NAME_SIGNY'), chatArea.text, null);
 				}
 				chatArea.text = "";
 			}
@@ -214,7 +214,7 @@
 	
 	<s:actionContent>
 		<s:Button includeIn="tweets" id="viewChatButton" label="Chat" click="viewChat(event)"/>
-		<s:Button includeIn="chat" id="manageTweetsButton" label="Manage tweets" click="manageTweets()"/>
+		<s:Button includeIn="chat" id="manageTweetsButton" label="Manage tweets" click="manageTweets()" enabled="false"/>
 		<s:Button id="disconnectButton" label="Disconnect" click="disconnect(event)"/>
 	</s:actionContent>
 	
